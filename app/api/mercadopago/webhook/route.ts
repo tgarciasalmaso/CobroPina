@@ -20,9 +20,25 @@ export async function POST(request: NextRequest) {
 
     const paymentClient = new Payment(client);
 
-    const payment = await paymentClient.get({
-      id: paymentId,
-    });
+    let payment;
+
+try {
+  payment = await paymentClient.get({
+    id: paymentId,
+  });
+} catch (error) {
+  console.error("No se pudo obtener el pago:", error);
+
+  // Mercado Pago usa IDs ficticios en la simulación
+  if (!body.live_mode) {
+    return NextResponse.json({ received: true });
+  }
+
+  return NextResponse.json(
+    { error: "Could not retrieve payment" },
+    { status: 500 }
+  );
+}
 
     if (!payment.id || payment.transaction_amount == null) {
       return NextResponse.json({ received: true });
